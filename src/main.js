@@ -16,6 +16,7 @@ import {takeLatest, call, put, all} from 'redux-saga/effects'
 import {EMPLOYEES_REQUESTED, DEPARTMENTS_REQUESTED} from "./actions/actionTypes";
 import axios from 'axios';
 import '@babel/polyfill';
+import {BrowserRouter, Route, Link, Switch} from 'react-router-dom';
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -60,9 +61,37 @@ function App() {
   return (
     <div>
       <div>Application</div>
-      <ListEmployeesContainer/>
-      <ListDepartmentsContainer/>
+      <Menu/>
+      <Switch>
+        <Route exact path='/' component={Home}/>
+        <Route path='/employees' component={ListEmployeesContainer}/>
+        <Route path='/departments' component={ListDepartmentsContainer}/>
+      </Switch>
     </div>
+  );
+}
+
+function Menu() {
+  return (
+    <div>
+      <ul>
+        <li>
+          <Link to='/'>Home</Link>
+        </li>
+        <li>
+          <Link to='/employees'>Employees</Link>
+        </li>
+        <li>
+          <Link to='/departments'>Departments</Link>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function Home() {
+  return (
+    <div>Home</div>
   );
 }
 
@@ -120,7 +149,9 @@ const ListDepartmentsContainer = connect(
 
 ReactDOM.render(
   <Provider store={store}>
-    <App/>
+    <BrowserRouter>
+      <App/>
+    </BrowserRouter>
   </Provider>,
   document.getElementById('root')
 );
