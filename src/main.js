@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider, connect} from 'react-redux';
-import {createStore, compose, applyMiddleware} from 'redux';
+import {createStore, compose, applyMiddleware, combineReducers} from 'redux';
 import {rootReducer} from "./reducers/apiReducer";
 import {
   departmentsFetched,
@@ -16,8 +16,11 @@ import {takeLatest, call, put, all} from 'redux-saga/effects'
 import {EMPLOYEES_REQUESTED, DEPARTMENTS_REQUESTED} from "./actions/actionTypes";
 import axios from 'axios';
 import '@babel/polyfill';
-import {BrowserRouter, Route, Link, Switch} from 'react-router-dom';
+import {Route, Link, Switch} from 'react-router-dom';
+import {connectRouter, routerMiddleware, ConnectedRouter} from 'connected-react-router';
+import {createBrowserHistory} from 'history';
 
+const history = createBrowserHistory();
 const sagaMiddleware = createSagaMiddleware();
 
 async function getApiData(resource) {
@@ -48,9 +51,12 @@ function* rootSaga() {
 }
 
 const store = createStore(
-  rootReducer,
+  combineReducers({
+    root: rootReducer,
+    router: connectRouter(history)
+  }),
   compose(
-    applyMiddleware(sagaMiddleware),
+    applyMiddleware(sagaMiddleware, routerMiddleware(history)),
     window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
   )
 );
@@ -138,20 +144,20 @@ class ListDepartments extends React.Component {
 }
 
 const ListEmployeesContainer = connect(
-  (state) => ({employees: state.employees}),
+  (state) => ({employees: state.root.employees}),
   {employeesRequested, employeesReset}
 )(ListEmployees);
 
 const ListDepartmentsContainer = connect(
-  (state) => ({departments: state.departments}),
+  (state) => ({departments: state.root.departments}),
   {departmentsRequested, departmentsReset}
 )(ListDepartments);
 
 ReactDOM.render(
   <Provider store={store}>
-    <BrowserRouter>
+    <ConnectedRouter history={history}>
       <App/>
-    </BrowserRouter>
+    </ConnectedRouter>
   </Provider>,
   document.getElementById('root')
 );
